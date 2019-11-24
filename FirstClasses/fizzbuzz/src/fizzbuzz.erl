@@ -16,12 +16,8 @@ fizzbuzz() ->
                 Number
             end
         end,
-    generate_inptu_list()).
+    generate_input_list()).
 
-generate_inptu_list() ->
+generate_input_list() ->
     lists:seq(1, 100).
-
-
-% fizz => x3
-% buzz => x5 
-% fizzbuzz => x15
+    

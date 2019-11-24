@@ -11,7 +11,7 @@ fizzbuzz_small_test() ->
     Expected = [fb(N) || N <- lists:seq(1, 6)],
     io:fwrite("~p", [Expected]),
     % mp - shouldn't fizzbuzz() know how large should output collection be?
-    % mp - this tests will newer pass since fizzbuzz() genereate fix lenght output, right?
+    % mp - this tests will never pass since fizzbuzz() genereate fix lenght output, right?
     ?assertEqual(Expected, fizzbuzz:fizzbuzz()).
 
 fizzbuzz_big_test() ->
