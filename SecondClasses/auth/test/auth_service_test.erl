@@ -128,15 +128,41 @@ deleting_one_user_does_not_affect_other_users_test() ->
 % if names are not explanatory enough, please ask :)
 
 user_with_correct_password_is_authenticated_test() ->
+    InitState = init_state(),
+    UserLogin = randomize_name("Adam"),
+    UserPassword = randomize_name("admin"),
+    OneUserState = add_user(UserLogin, UserPassword, InitState),
+    AuthResult = auth_user(UserLogin, UserPassword, OneUserState),
+    ?assertEqual(true, AuthResult),
     ok.
 
-user_with_incorrect_password_is_not_authenticated_test() ->
+user_with_incorrect_password_is_not_authenticated_test() ->    
+    InitState = init_state(),
+    UserLogin = randomize_name("Adam"),
+    UserPassword = randomize_name("admin"),
+    OneUserState = add_user(UserLogin, UserPassword, InitState),
+    IncorectUserPassword = randomize_name(""),
+    AuthResult = auth_user(UserLogin, IncorectUserPassword, OneUserState),
+    ?assertEqual(false, AuthResult),    
+    IncorectUserPassword2 = randomize_name("ADMIN"),
+    AuthResult2 = auth_user(UserLogin, IncorectUserPassword2, OneUserState),
+    ?assertEqual(false, AuthResult2),
     ok.
 
 not_existing_user_is_not_authenticated_test() ->
+    InitState = init_state(),
+    AuthResult = auth_user("", "", InitState),
+    ?assertEqual(false, AuthResult),    
     ok.
 
 added_and_then_deleted_user_in_not_authenticated_test() ->
+    InitState = init_state(),
+    UserLogin = randomize_name("Adam"),
+    UserPassword = randomize_name("admin"),
+    OneUserState = add_user(UserLogin, UserPassword, InitState),
+    RemovedUserState = del_user(UserLogin, OneUserState),
+    AuthResult = auth_user(UserLogin, UserPassword, RemovedUserState),
+    ?assertEqual(false, AuthResult),    
     ok.
 
 %% -------------------------------------------------------
@@ -145,16 +171,20 @@ added_and_then_deleted_user_in_not_authenticated_test() ->
 
 state_size(ListState) when is_list(ListState) ->
     length(ListState);
-state_size(_State) ->
+state_size(_State) when is_map(_State) ->
     % TODO IMPLEMENT FOR MAPS
     % see http://erlang.org/doc/man/maps.html#size-1
-    1.
+    length(maps:to_list(_State)/2).
 
 init_state() ->
     init_state(?IMPLEMENTATION).
 
 % TODO Add case for your module
 init_state(list_based_auth_service) -> [].
+
+
+init_state(AuthServicesMap, Key) when is_map(AuthServicesMap) -> 
+    maps:get(Key, AuthServicesMap).
 
 randomize_name(Base) ->
     RandomBinary = base64:encode(crypto:strong_rand_bytes(6)),
