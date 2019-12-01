@@ -21,31 +21,18 @@ list_lenght(List) ->
 sum_buildin(List) ->
     lists:sum(List).
 
+sum_recursion([]) -> 0;
 sum_recursion([H|T]) ->
-    case H of
-        [] ->
-            0;
-        _ ->    
-            case T of
-                [] -> 
-                    H;
-                _ ->
-                    H + sum_recursion(T)
-                end
-        end.
+    H + sum_recursion(T).
 
 list_lenght_buildin(List) ->
     length(List).
 
-list_lenght_recursion([H|T]) -> 
-    case H of
-        [] ->
-            0;
-        _ ->    
-            case T of
-                [] -> 
-                    1;
-                _ ->
-                1 + list_lenght_recursion(T)
-            end
-        end.
+list_lenght_recursion([]) -> 0; 
+list_lenght_recursion([_|T]) -> 
+    case T of
+        [] -> 
+            1;
+        _ ->
+        1 + list_lenght_recursion(T)
+    end.
