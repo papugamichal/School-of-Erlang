@@ -171,10 +171,9 @@ added_and_then_deleted_user_in_not_authenticated_test() ->
 
 state_size(ListState) when is_list(ListState) ->
     length(ListState);
+
 state_size(_State) when is_map(_State) ->
-    % TODO IMPLEMENT FOR MAPS
-    % see http://erlang.org/doc/man/maps.html#size-1
-    length(maps:to_list(_State)/2).
+    maps:size(_State);
 
 init_state() ->
     init_state(?IMPLEMENTATION).

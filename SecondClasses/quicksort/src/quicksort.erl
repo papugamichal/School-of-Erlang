@@ -13,9 +13,7 @@ sort(L = [H|_]) ->
 sort_step_by_step([H|T]) ->
     S = lists:filter(fun(X) -> X < H end, T), 
     B = lists:filter(fun(X) -> X >= H end, T),
-    SortedS = lists:sort(S),
-    SortedB = lists:sort(B),
-    SortedS ++ [H] ++ SortedB.
+    sort_step_by_step(S) ++ [H] ++ sort_step_by_step(B).
 
 % 1.2 sort_with_list_comprachentions
 sort_with_list_comprachentions([H|T]) ->
