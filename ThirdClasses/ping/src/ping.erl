@@ -17,26 +17,56 @@
     FourthR :: maybe_range(),
     Count :: pos_integer().
 ping_all(MaybeRange1, MaybeRange2, MaybeRange3, MaybeRange4, Count) ->
-    % 1) replace mabye_ranges = {From, To} with list [Form, To] and  
-    % and replace mabye_ranges = SingleInt with lists [SingleList] 
-    % 2) generate a list of IP addresses, a list comprehension might be helpful
-    % 3) foreach IP address spawn a process which will execute ping command and then
-    % it will send a result to the parent process
-    % 4) Parent process should receive messages in a loop 
-    %  when all processes finish their tasks and report the results print the result.
+    IPCollection = make_ip_collection(MaybeRange1, MaybeRange2, MaybeRange3, MaybeRange4),
+    ICMP = parse_icmp(Count),
+    CoordinatorPID = spawn( fun() -> coordinator() end),
+    lists:foreach(
+        fun(IPAddress) -> spawn(fun() -> worker(CoordinatorPID, IPAddress, ICMP) end) end,
+    IPCollection).
+
+coordinator() ->
+    io:fwrite("Coordinator: my PID is ~p\n", [self()]),
+    coordinator(20000).
+
+coordinator(Timeout) ->
+    receive
+        {WorkerPid, Msg} ->
+            io:fwrite("Coordinator: Received message from worker: ~p \n~p\n", [WorkerPid, Msg]),
+            coordinator(20000)
+    after
+        Timeout ->
+            io:fwrite("Coordinator: Didn't received any message since last ~p miliseconds! Goodbye! \n", [Timeout])
+    end.
+
+worker(CoordinatorPid, IPAddress, ICMP) ->
+    MyPid = self(),
+    Result = ping(IPAddress, ICMP),
+    CoordinatorPid ! {MyPid, Result},
     ok.
 
-make_range(_) -> ok.
+make_ip_collection(MaybeRange1, MaybeRange2, MaybeRange3, MaybeRange4) ->
+    A = make_range(MaybeRange1),
+    B = make_range(MaybeRange2),
+    C = make_range(MaybeRange3),
+    D = make_range(MaybeRange4),
+    [lists:concat([A1, ".", B1, ".", C1, ".", D1]) || A1 <- A, B1 <- B, C1 <- C, D1 <- D].
 
-% ping(StringIpAddress, Count) ->
-%     Cmd = "ping -c " ++ Count ++ " " ++ StringIpAddress,
-%     os:cmd(Cmd).
+make_range({A, B}) ->
+    lists:seq(A, B);
+make_range(Number) when is_number(Number) ->
+    [Number].
+
+parse_icmp(ICMP) ->
+    integer_to_list(ICMP).
+
+ping(StringIpAddress, Count) ->
+    Cmd = "ping -c " ++ Count ++ " " ++ StringIpAddress,
+    os:cmd(Cmd).
 
 parse_result_form_ping_cmd(_) ->
     % Maybe use list matching and recursion matching first few element??
     % checkout https://erlang.org/doc/man/string.html
     ok.
-
 
 %% ===================================================================================
 %% Unit tests
@@ -57,12 +87,18 @@ integer_is_replaced_with_single_element_list_with_random_int_test() ->
 
 range_is_replaced_with_a_list_starting_with_from_and_ending_with_to_test() ->
     Range = make_range({5, 255}),
-    ?assertEqual(5, hd(Range)),
-    ?assertEqual(10, lists:last(Range)).
+    [H|_] = Range,
+    ?assertEqual(5, H),
+    ?assertEqual(255, lists:last(Range)).
 
 one_element_range_works_test() ->
     Range = make_range({2, 2}),
     ?assertEqual([2], Range).
+
+make_ip_collection_test() ->
+    IPCollection = make_ip_collection(192, 168, 1, 1),
+    [H|_] = IPCollection,
+    ?assertEqual("192.168.1.1", H).
 
 fail_ping_result() ->
     "PING 192.168.0.2 (192.168.0.2): 56 data bytes\n"
