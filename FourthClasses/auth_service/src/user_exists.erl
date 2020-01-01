@@ -29,10 +29,10 @@ authenticate_user(StorageServerName, Login, Password) ->
     gen_server:call(StorageServerName, {authenticate, Login, Password}).
 
 delete_user(StorageServerName, Login) ->
-   ok.
+   gen_server:call(StorageServerName, {delete, Login}).
 
 exists_user(StorageServerName, Login) ->
-   ok.
+   gen_server:call(StorageServerName, {exists, Login}).
 
 crush(StorageServerName) ->
     gen_server:cast(StorageServerName, crush).
@@ -46,11 +46,19 @@ handle_call(stop, _From, State) ->
    {stop, normal, stopped, State};
 
 handle_call({add, Login, Password}, _From, State) ->
-    {reply, added, State#{Login => Password}};
+   {reply, added, State#{Login => Password}};
 
 handle_call({authenticate, Login, Password}, _From, State) ->
-    Result = maps:is_key(Login, State) andalso Password == maps:get(Login, State),
-    {reply, Result, State}.
+   Result = maps:is_key(Login, State) andalso Password == maps:get(Login, State),
+   {reply, Result, State};
+
+handle_call({delete, Login}, _From, State) ->
+   NewState = maps:remove(Login, State),
+   {reply, removed, NewState};
+
+handle_call({exists, Login}, _From, State) ->
+   Result = maps:is_key(Login, State),
+   {reply, Result, State}.
 
 handle_cast(crush, State) ->
    1 = 2,

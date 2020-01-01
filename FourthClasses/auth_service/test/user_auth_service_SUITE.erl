@@ -44,7 +44,9 @@ groups() ->
         ]},
         {user_exists, [], [
             added_user_exists_in_a_state_test,
-            not_added_user_exists_in_a_state_test
+            not_added_user_exists_in_a_state_test,
+            not_added_user_delete_test,
+            existing_user_delete_test
         ]}
     ].
 
@@ -76,8 +78,18 @@ added_user_exists_in_a_state_test(Config) ->
     true = user_exists:exists_user(AuthServiceName, Login),
     ok.
 
+not_added_user_delete_test(Config) ->
+    AuthServiceName = proplists:get_value(auth_service_name, Config),
+    false = user_exists:delete_user(AuthServiceName, "NotExistingUser"),
+    ok.
+
+existing_user_delete_test(Config) ->
+    AuthServiceName = proplists:get_value(auth_service_name, Config),
+    {Login, _} = proplists:get_value(existing_user_creds, Config),
+    true = user_exists:delete_user(AuthServiceName, Login),
+    ok.
+
 not_added_user_exists_in_a_state_test(Config) ->
     AuthServiceName = proplists:get_value(auth_service_name, Config),
     false = user_exists:exists_user(AuthServiceName, "NotExisting"),
     ok.
-
